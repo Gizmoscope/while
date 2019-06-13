@@ -3,7 +3,7 @@ package vvhile.basic;
 import java.math.BigInteger;
 
 /**
- * 
+ *
  * @author markus
  */
 public interface Token extends Variable {
@@ -35,7 +35,6 @@ public interface Token extends Variable {
     public static final Symbol AND = new Symbol("&");
     public static final Symbol OR = new Symbol("|");
     public static final Symbol NOT = new Symbol("!");
-    public static final Symbol CONCAT = new Symbol("#");
     public static final Symbol FORALL = new Symbol("^");
     public static final Symbol EXISTS = new Symbol("?");
     public static final Symbol IN = EXISTS;
@@ -43,18 +42,14 @@ public interface Token extends Variable {
     public static final Symbol IMPLIES = new Symbol("->");
     public static final Symbol IMPLIED_BY = new Symbol("<-");
     public static final Symbol TYPE = new Symbol("::");
-    public static final Symbol L_BRACKET = new Symbol("[");
-    public static final Symbol R_BRACKET = new Symbol("]");
-    public static final Symbol PARALLEL = new Symbol("||");
     public static final Symbol DOTS = new Symbol("...");
-    public static final Symbol INDEX = new Symbol("_");
-    
+
     // Extension: Exceptions
     public static final Symbol EXC = new Symbol("exc");
     public static final Symbol TRY = new Symbol("try");
     public static final Symbol CATCH = new Symbol("catch");
     public static final Symbol THROW = new Symbol("throw");
-    
+
     // Extension: Procedures
     public static final Symbol MAPSTO = IMPLIES;
     public static final Symbol COMMA = new Symbol(",");
@@ -101,7 +96,7 @@ public interface Token extends Variable {
         public BigInteger getValue() {
             return value;
         }
-        
+
         public Expression.Constant getConstant() {
             return new Expression.Constant(Expression.SORT_INTEGER, value);
         }

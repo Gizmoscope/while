@@ -7,13 +7,11 @@ public class HoareTriple implements HoareOrBoolean {
     private final BooleanFormula preCondition;
     private final Statement statement;
     private final BooleanFormula postCondition;
-    private final BooleanFormula excPostCondition;
 
     public HoareTriple(BooleanFormula preCondition, Statement statement, BooleanFormula postCondition) {
         this.preCondition = preCondition;
         this.statement = statement;
         this.postCondition = postCondition;
-        this.excPostCondition = new BooleanFormula.BooleanConstant(true);
     }
 
     public BooleanFormula getPreCondition() {
@@ -28,13 +26,9 @@ public class HoareTriple implements HoareOrBoolean {
         return postCondition;
     }
 
-    public BooleanFormula getExcPostCondition() {
-        return excPostCondition;
-    }
-
     @Override
     public String toString() {
-        return "{" + preCondition + "} " + statement + " {" + postCondition + "} ▷ " + excPostCondition;
+        return "{" + preCondition + "} " + statement + " {" + postCondition + "}";
     }
 
     @Override
@@ -42,8 +36,7 @@ public class HoareTriple implements HoareOrBoolean {
         return (latex ? "\\textcolor{blue}{$\\{" : "{")
                 + preCondition.toString(latex)+ (latex ?"\\}$} " : "} ")
                 + statement.toString(latex)+ (latex ? " \\textcolor{blue}{$\\{" : " {")
-                + postCondition.toString(latex)+ (latex ? "$\\}}" : "}"); // \\vartriangleright " 
-        //+ excPostCondition.toLatexCode() + "$";
+                + postCondition.toString(latex)+ (latex ? "$\\}}" : "}");
     }
 
 }

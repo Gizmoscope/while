@@ -35,8 +35,7 @@ public class BasicRuleSet {
         L_PAREN, R_PAREN, SEMICOLON, L_CURLY, R_CURLY, ASSIGN, LESS_THAN,
         LESS_EQUAL, EQUALS, GREATER_EQUAL, GREATER_THAN, PLUS, MINUS, TIMES,
         AND, OR, NOT, ID, NUM, EOF, SKIP, IF, ELSE, WHILE, TRUE, FALSE, UNKNOWN,
-        FORALL, EXISTS, DOT, IMPLIES, IMPLIED_BY, L_BRACKET,
-        R_BRACKET,
+        FORALL, EXISTS, DOT, IMPLIES, IMPLIED_BY,
     });
 
     public static final Collection<Rule> BASIC_RULES = Arrays.asList(new Rule[]{

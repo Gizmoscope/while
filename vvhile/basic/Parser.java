@@ -6,6 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import static vvhile.basic.Token.EOF;
+import vvhile.basic.hoare.BooleanFormula;
+import vvhile.basic.hoare.HoareProver;
+import vvhile.basic.hoare.HoareTree;
+import vvhile.basic.hoare.HoareTriple;
 
 /**
  *
@@ -121,9 +125,11 @@ public class Parser {
         Expression.Constant.showSorts = false;
         Expression.Variable.showSorts = false;
         String code
-                = "n := 8;"
-                + "m := 9;"
-                + "x := n + m";
+                = "m := 0;             \n"
+                + "while (n > 0) {     \n"
+                + "    m := m + n;     \n"
+                + "    n := n - 1      \n"
+                + "}                   \n";
         Scanner scanner = new Scanner(code);
         Parser parser = new Parser(scanner,
                 BasicRuleSet.generateParsingTable(
@@ -135,18 +141,24 @@ public class Parser {
         boolean parsed = parser.parseProgram();
         if (parsed) {
             System.out.println("  SUCCESS");
+            
             ParseTree parseTree = parser.getParseTree();
             Statement compiledCode = ToASTCompiler.compileStatement(parseTree);
 
-//            System.out.println(new ASTToTextExporter(4, false).getText(compiledCode));
-//            System.out.println();
-
-            Configuration conf = new Configuration(compiledCode, new State());
-            while(conf.getProgram() != null) {
-                conf = conf.getProgram().run(conf.getState());
-            }
-
-            System.out.println(conf.getState());
+//            // Run the program
+//            Configuration conf = new Configuration(compiledCode, new State());
+//            while(conf.getProgram() != null) {
+//                conf = conf.getProgram().run(conf.getState());
+//            }
+//            System.out.println(conf.getState());
+            
+            // Build Hoare tree
+            BooleanFormula preCondition = (BooleanFormula) compileExpression("n >= 0");
+            BooleanFormula postCondition = (BooleanFormula) compileExpression("2 * m = n * (n + 1)");
+            HoareTriple triple = new HoareTriple(preCondition, compiledCode, postCondition);
+            HoareTree tree = new HoareProver().buildHoareTree(triple);
+            System.out.println(tree.getObligations());
+            System.out.println(tree);
         } else {
             System.out.println("  FAIL");
             parser.messages.forEach(m -> System.out.println(m));

@@ -1,7 +1,6 @@
 package vvhile.basic;
 
 import java.math.BigInteger;
-import vvhile.basic.ScanException;
 
 /**
  *
@@ -46,11 +45,9 @@ public class Scanner {
             case 'w':
                 return scanWhile();
             case 't':
-                return scanTrueTryThrow();
+                return scanTrue();
             case 'f':
                 return scanFalse();
-            case 'c':
-                return scanCatch();
             case 'a':
             case 'b':
             case 'd':
@@ -118,10 +115,6 @@ public class Scanner {
                 return Token.L_CURLY;
             case '}':
                 return Token.R_CURLY;
-            case '[':
-                return Token.L_BRACKET;
-            case ']':
-                return Token.R_BRACKET;
             case ':':
                 if (pos + 1 >= input.length()) {
                     throw new ScanException("Unexpeced end of file", '=');
@@ -137,15 +130,7 @@ public class Scanner {
                         throw new ScanException("Illegal character: " + next, '=');
                 }
             case '|':
-                if (pos + 1 >= input.length()) {
-                    return Token.OR;
-                }
-                if (input.charAt(pos + 1) == '|') {
-                    next = input.charAt(++pos);
-                    return Token.PARALLEL;
-                } else {
-                    return Token.OR;
-                }
+                return Token.OR;
             case '<':
                 if (pos + 1 >= input.length()) {
                     return Token.LESS_THAN;
@@ -190,8 +175,6 @@ public class Scanner {
                 return Token.AND;
             case '!':
                 return Token.NOT;
-            case '#':
-                return Token.CONCAT;
             case ',':
                 return Token.COMMA;
             case '~':
@@ -200,8 +183,6 @@ public class Scanner {
                 return Token.FORALL;
             case '?':
                 return Token.EXISTS;
-            case '_':
-                return Token.INDEX;
             case '.':
                 if (pos + 2 >= input.length()) {
                     return Token.DOT;
@@ -341,24 +322,16 @@ public class Scanner {
         return scanIdentifier();
     }
 
-    private Token scanTrueTryThrow() {
-        if (pos + 2 >= input.length()) {
+    private Token scanTrue() {
+        if (pos + 3 >= input.length()) {
             return scanIdentifier();
         }
         next = input.charAt(++pos);
-        if (next == 'h') {
-            return scanThrow();
-        }
-        next = input.charAt(++pos);
-        if (next != 'u' && next != 'y') {
+        if (next != 'r') {
             return scanIdentifier();
         }
-        if (next == 'y' && (pos + 1 >= input.length()
-                || isSymbolChar(input.charAt(pos + 1))
-                || Character.isWhitespace(input.charAt(pos + 1)))) {
-            return Token.TRY;
-        }
-        if (pos + 1 >= input.length()) {
+        next = input.charAt(++pos);
+        if (next != 'u') {
             return scanIdentifier();
         }
         next = input.charAt(++pos);
@@ -369,30 +342,6 @@ public class Scanner {
                 || isSymbolChar(input.charAt(pos + 1))
                 || Character.isWhitespace(input.charAt(pos + 1))) {
             return Token.TRUE;
-        }
-        return scanIdentifier();
-    }
-
-    private Token scanThrow() {
-        if (pos + 3 >= input.length()) {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 'r') {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 'o') {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 'w') {
-            return scanIdentifier();
-        }
-        if (pos + 1 >= input.length()
-                || isSymbolChar(input.charAt(pos + 1))
-                || Character.isWhitespace(input.charAt(pos + 1))) {
-            return Token.THROW;
         }
         return scanIdentifier();
     }
@@ -421,34 +370,6 @@ public class Scanner {
                 || isSymbolChar(input.charAt(pos + 1))
                 || Character.isWhitespace(input.charAt(pos + 1))) {
             return Token.FALSE;
-        }
-        return scanIdentifier();
-    }
-
-    private Token scanCatch() {
-        if (pos + 3 >= input.length()) {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 'a') {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 't') {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 'c') {
-            return scanIdentifier();
-        }
-        next = input.charAt(++pos);
-        if (next != 'h') {
-            return scanIdentifier();
-        }
-        if (pos + 1 >= input.length()
-                || isSymbolChar(input.charAt(pos + 1))
-                || Character.isWhitespace(input.charAt(pos + 1))) {
-            return Token.CATCH;
         }
         return scanIdentifier();
     }

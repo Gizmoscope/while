@@ -45,10 +45,10 @@ public class HoareTree {
         return obligations;
     }
 
-    public AnnotatedStatement ToProofOutline() {
+    public AnnotatedStatement toProofOutline() {
         AnnotatedStatement[] subOutlines = new AnnotatedStatement[children.length];
         for (int i = 0; i < children.length; i++) {
-            subOutlines[i] = children[i].ToProofOutline();
+            subOutlines[i] = children[i].toProofOutline();
         }
         if (node instanceof BooleanFormula) {
 //            BooleanFormula booleanFormula = (BooleanFormula) node;
