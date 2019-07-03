@@ -19,7 +19,7 @@ public class ParsingTable {
     }
 
     public void addRule(NonTerminal nonTerminal, Token token, Rule rule) {
-        Pair p = new Pair<NonTerminal, Token>(nonTerminal, token);
+        Pair p = new Pair<>(nonTerminal, token);
         if (rules.containsKey(p)) {
             throw new ParseException("Grammar is not LL(1). "
                     + "Doublicate Rule for pair (" + nonTerminal + ",\"" + token + "\"). Rules  " + rules.get(p) + "  and  " + rule);

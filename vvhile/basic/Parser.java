@@ -1,15 +1,21 @@
 package vvhile.basic;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import static vvhile.basic.Token.EOF;
-import vvhile.basic.hoare.BooleanFormula;
+import vvhile.basic.Token.Symbol;
 import vvhile.basic.hoare.HoareProver;
 import vvhile.basic.hoare.HoareTree;
 import vvhile.basic.hoare.HoareTriple;
+import vvhile.basic.theorem.TheoremProver;
 
 /**
  *
@@ -66,7 +72,7 @@ public class Parser {
                     messages.add(new Message(Message.ERROR, "Wrong token! \n   Read \""
                             + nextToken + "\", but expected \""
                             + (word.peek() instanceof Token ? word.peek()
-                                    : parsingTable.getPossibleTokensFor((NonTerminal) word.peek())) + "\"",
+                            : parsingTable.getPossibleTokensFor((NonTerminal) word.peek())) + "\"",
                             scanner.getLine(), scanner.getPositionInLine()));
                     return false;
                 }
@@ -102,6 +108,7 @@ public class Parser {
         );
         Parser parser = new Parser(new Scanner(code), table);
         parser.parseExpression();
+        System.out.println(parser.messages);
         return ToASTCompiler.compileExpression(parser.getParseTree());
     }
 
@@ -118,10 +125,28 @@ public class Parser {
         return ToASTCompiler.compileStatement(parser.getParseTree());
     }
 
+    public static void main(String[] args) throws IOException, IllegalArgumentException, IllegalAccessException {
+        Scanner2 scanner = new Scanner2();
+        for(Field f: Token.class.getFields()) {
+            if(f.canAccess(null)) {
+                Object symbol = f.get(null);
+                if(symbol instanceof Symbol) {
+                    scanner.addSymbol((Symbol) symbol);
+                }
+            }
+        }
+        scanner.setInput(new ByteArrayInputStream("  \n    skip bo".getBytes(StandardCharsets.UTF_8)));
+        Token token = scanner.nextToken();
+        while (!EOF.equals(token)) {
+            System.out.println(token);
+            token = scanner.nextToken();
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main2(String[] args) {
         Expression.Constant.showSorts = false;
         Expression.Variable.showSorts = false;
         String code
@@ -141,7 +166,7 @@ public class Parser {
         boolean parsed = parser.parseProgram();
         if (parsed) {
             System.out.println("  SUCCESS");
-            
+
             ParseTree parseTree = parser.getParseTree();
             Statement compiledCode = ToASTCompiler.compileStatement(parseTree);
 
@@ -151,14 +176,14 @@ public class Parser {
 //                conf = conf.getProgram().run(conf.getState());
 //            }
 //            System.out.println(conf.getState());
-            
-            // Build Hoare tree
-            BooleanFormula preCondition = (BooleanFormula) compileExpression("n >= 0");
-            BooleanFormula postCondition = (BooleanFormula) compileExpression("2 * m = n * (n + 1)");
-            HoareTriple triple = new HoareTriple(preCondition, compiledCode, postCondition);
-            HoareTree tree = new HoareProver().buildHoareTree(triple);
-            System.out.println(tree.getObligations());
-            System.out.println(tree);
+//            // Build Hoare tree
+//            BooleanFormula preCondition = (BooleanFormula) compileExpression("n >= 0");
+//            BooleanFormula postCondition = (BooleanFormula) compileExpression("2 * m = n * (n + 1)");
+//            HoareTriple triple = new HoareTriple(preCondition, compiledCode, postCondition);
+//            HoareTree tree = new HoareProver().buildHoareTree(triple);
+//            System.out.println(tree.getObligations());
+//            System.out.println(tree);
+            TheoremProver prover = new TheoremProver();
         } else {
             System.out.println("  FAIL");
             parser.messages.forEach(m -> System.out.println(m));
