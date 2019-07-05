@@ -135,12 +135,13 @@ public class Parser {
                 }
             }
         }
-        scanner.setInput(new ByteArrayInputStream("  \n    skip bo".getBytes(StandardCharsets.UTF_8)));
+//        scanner.setInput(new ByteArrayInputStream("  \n    skip bo".getBytes(StandardCharsets.UTF_8)));
         Token token = scanner.nextToken();
         while (!EOF.equals(token)) {
             System.out.println(token);
             token = scanner.nextToken();
         }
+        System.out.println(scanner.nextToken());
     }
 
     /**
