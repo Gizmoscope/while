@@ -1,8 +1,8 @@
 package vvhile.basic.hoare;
 
-import vvhile.basic.Expression;
-import vvhile.basic.Statement;
-import vvhile.basic.Statement.*;
+import vvhile.intrep.Expression;
+import vvhile.intrep.Statement;
+import vvhile.intrep.Statement.*;
 import static vvhile.basic.operators.Operator.*;
 
 /**

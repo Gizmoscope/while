@@ -1,4 +1,4 @@
-package vvhile.basic;
+package vvhile.intrep;
 
 import java.util.Collections;
 import java.util.HashSet;

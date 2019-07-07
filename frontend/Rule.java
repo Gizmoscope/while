@@ -1,4 +1,4 @@
-package vvhile.basic;
+package frontend;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author markus
  */
-public class Rule {
+public class Rule implements Comparable<Rule> {
 
     private final NonTerminal lhs;
     private final Variable[] rhs;
@@ -71,6 +71,18 @@ public class Rule {
             return false;
         }
         return Arrays.deepEquals(this.rhs, other.rhs);
+    }
+
+    @Override
+    public int compareTo(Rule r) {
+        int c = lhs.getName().compareTo(r.lhs.getName());
+        if (c != 0) {
+            return c;
+        }
+        for(int i=0; i<rhs.length && i<r.rhs.length && c != 0; i++) {
+            c = rhs[i].toString().compareTo(r.rhs[i].toString());
+        }
+        return c;
     }
 
 }

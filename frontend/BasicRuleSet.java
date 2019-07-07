@@ -1,4 +1,4 @@
-package vvhile.basic;
+package frontend;
 
 import java.util.AbstractCollection;
 import java.util.Arrays;
@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import static vvhile.basic.Token.*;
+import static frontend.Token.*;
 
 /**
  *

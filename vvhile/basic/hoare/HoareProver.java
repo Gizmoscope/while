@@ -2,9 +2,9 @@ package vvhile.basic.hoare;
 
 import java.util.LinkedList;
 import java.util.List;
-import vvhile.basic.Expression;
-import vvhile.basic.Statement;
-import vvhile.basic.Statement.*;
+import vvhile.intrep.Expression;
+import vvhile.intrep.Statement;
+import vvhile.intrep.Statement.*;
 import static vvhile.basic.hoare.BasicHoare.*;
 import vvhile.basic.operators.Operator;
 

@@ -1,6 +1,6 @@
 package vvhile.basic.hoare;
 
-import vvhile.basic.Statement;
+import vvhile.intrep.Statement;
 
 public class HoareTriple implements HoareOrBoolean {
 

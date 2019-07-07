@@ -1,6 +1,6 @@
 package vvhile.basic.operators;
 
-import vvhile.basic.Expression;
+import vvhile.intrep.Expression;
 import vvhile.basic.hoare.BooleanFormula;
 
 /**

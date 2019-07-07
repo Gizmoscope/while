@@ -2,7 +2,7 @@ package vvhile.basic.hoare;
 
 import java.util.LinkedList;
 import java.util.List;
-import vvhile.basic.Statement;
+import vvhile.intrep.Statement;
 import vvhile.basic.hoare.BooleanFormula.BooleanFunction;
 
 /**

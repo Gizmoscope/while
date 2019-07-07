@@ -2,8 +2,8 @@ package vvhile.basic.theorem;
 
 import java.util.HashSet;
 import java.util.Set;
-import vvhile.basic.Expression;
-import vvhile.basic.Parser;
+import vvhile.intrep.Expression;
+import frontend.Parser;
 import vvhile.basic.hoare.BooleanFormula;
 import vvhile.basic.operators.And;
 import vvhile.basic.operators.ImpliedBy;

@@ -1,4 +1,4 @@
-package vvhile.basic;
+package vvhile.intrep;
 
 import java.math.BigInteger;
 import java.util.Arrays;

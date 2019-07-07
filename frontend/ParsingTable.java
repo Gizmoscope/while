@@ -1,10 +1,11 @@
-package vvhile.basic;
+package frontend;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import vvhile.basic.Pair;
+import vvhile.intrep.Pair;
+import vvhile.intrep.Pair;
 
 /**
  *

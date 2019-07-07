@@ -6,10 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
-import vvhile.basic.Configuration;
-import vvhile.basic.Expression;
-import vvhile.basic.State;
-import vvhile.basic.Statement;
+import vvhile.intrep.Configuration;
+import vvhile.intrep.Expression;
+import vvhile.intrep.State;
+import vvhile.intrep.Statement;
 
 /**
  *

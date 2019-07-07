@@ -1,15 +1,20 @@
-package vvhile.basic;
+package vvhile.intrep;
 
+import frontend.Variable;
+import frontend.Token;
+import frontend.ParseTree;
+import frontend.Rule;
+import frontend.ParseException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import static vvhile.basic.BasicRuleSet.*;
-import vvhile.basic.ParseTree.Leaf;
-import vvhile.basic.ParseTree.Node;
-import vvhile.basic.ParseTree.ProperNode;
-import static vvhile.basic.Token.*;
+import static frontend.BasicRuleSet.*;
+import frontend.ParseTree.Leaf;
+import frontend.ParseTree.Node;
+import frontend.ParseTree.ProperNode;
+import static frontend.Token.*;
 import vvhile.basic.hoare.BooleanFormula;
 import vvhile.basic.operators.And;
 import vvhile.basic.operators.Equals;

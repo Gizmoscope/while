@@ -3,8 +3,8 @@ package vvhile.basic.hoare;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Objects;
-import vvhile.basic.Expression;
-import vvhile.basic.State;
+import vvhile.intrep.Expression;
+import vvhile.intrep.State;
 import vvhile.basic.operators.Operator;
 
 /**
