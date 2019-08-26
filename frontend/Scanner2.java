@@ -28,16 +28,19 @@ public class Scanner2 {
 
     /**
      * Create a new Scanner with empty token tree and whitespaces as only
-     * terminators. To use the scanner first add tokens, terminators and (most
-     * importantly) an input stream.
+     * terminators. To use the scanner first add tokens, terminators and 
+     * subscanners.
+     * 
+     * @param inputStream an input stream to be read from
+     * @throws java.io.IOException
      */
-    public Scanner2() {
+    public Scanner2(InputStream inputStream) throws IOException {
         tokenTree = new TokenTree("");
         subscanners = new HashMap<>();
         terminator = (Integer c) -> {
             return Character.isWhitespace(c);
         };
-        next = -1;
+        setInput(inputStream);
     }
 
     /**
@@ -55,17 +58,17 @@ public class Scanner2 {
         }
         // trigger subscanner if next is an entryCharacter
         if(subscanners.containsKey(next)) {
-            Object[] result = subscanners.get(next).readToken(next, input);
-            int rows = (int) result[1];
-            int cols = (int) result[2];
-            next = (int) result[3];
+            ScanObject result = subscanners.get(next).readToken(next, input);
+            int rows = result.getLine();
+            int cols = result.getPositionInLine();
+            next = result.getCodePoint();
             if(rows == 0) {
                 column += cols;
             } else {
                 row += rows;
                 column = cols;
             }
-            return (Token) result[0];
+            return result.getToken();
         }
         // remember the position in the token tree
         TokenTree position = tokenTree;
@@ -156,11 +159,11 @@ public class Scanner2 {
         };
     }
 
-    /**
+    /*
      * @param inputStream a new input stream to be read from
      * @throws IOException
      */
-    public void setInput(InputStream inputStream) throws IOException {
+    private void setInput(InputStream inputStream) throws IOException {
         input = new BufferedReader(new InputStreamReader(inputStream));
         row = 0;
         column = 0;
@@ -195,16 +198,16 @@ public class Scanner2 {
      * 
      * @param buffer A bounded buffer
      */
-    public void startScan(BoundedBuffer<Token> buffer) {
+    public void startScan(BoundedBuffer<ScanObject> buffer) {
         new Thread(() -> {
             try {
                 Token token = nextToken();
                 do {
-                    buffer.put(token);
+                    buffer.put(new ScanObject(token, row, column, next));
                     token = nextToken();
                 } while (token != Token.EOF);
             } catch (IOException e) {
-                buffer.put(new Token.Error(e.getMessage()));
+                buffer.put(new ScanObject(new Token.Error(e.getMessage()), row, column, next));
             }
         }).start();
     }
@@ -249,8 +252,40 @@ public class Scanner2 {
          * character that were read
          * @throws java.io.IOException
          */
-        public Object[] readToken(int entryCodePoint, Reader input)  throws IOException;
+        public ScanObject readToken(int entryCodePoint, Reader input)  throws IOException;
 
+    }
+    
+    public static class ScanObject {
+        
+        private final Token token;
+        private final int line;
+        private final int positionInLine;
+        private final int codePoint;
+
+        public ScanObject(Token token, int line, int positionInLine, int codePoint) {
+            this.token = token;
+            this.line = line;
+            this.positionInLine = positionInLine;
+            this.codePoint = codePoint;
+        }
+
+        public Token getToken() {
+            return token;
+        }
+
+        public int getLine() {
+            return line;
+        }
+
+        public int getPositionInLine() {
+            return positionInLine;
+        }
+
+        public int getCodePoint() {
+            return codePoint;
+        }
+        
     }
 
 }

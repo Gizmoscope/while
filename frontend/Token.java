@@ -7,7 +7,7 @@ import vvhile.intrep.Expression;
  *
  * @author markus
  */
-public interface Token extends Variable {
+public interface Token extends Variable, Parser2.ParseObject {
 
     public static final EOF EOF = new EOF();
 

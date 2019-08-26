@@ -1,5 +1,6 @@
 package frontend;
 
+import frontend.Scanner2.ScanObject;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigInteger;
@@ -21,7 +22,7 @@ public class IntegerScanner implements Scanner2.Subscanner {
     }
 
     @Override
-    public Object[] readToken(int entryCodePoint, Reader input) throws IOException {
+    public ScanObject readToken(int entryCodePoint, Reader input) throws IOException {
         // The first digit is given by the entryCharacter
         BigInteger value = BigInteger.valueOf(entryCodePoint - '0');
         int columns = 0;
@@ -33,7 +34,7 @@ public class IntegerScanner implements Scanner2.Subscanner {
             columns++;
             next = input.read();
         }
-        return new Object[]{new Token.Number(value), 0, columns, next};
+        return new ScanObject(new Token.Number(value), 0, columns, next);
     }
     
 }

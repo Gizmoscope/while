@@ -1,5 +1,6 @@
 package frontend;
 
+import frontend.Scanner2.ScanObject;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -44,7 +45,7 @@ public class StringScanner implements Scanner2.Subscanner {
     }
     
     @Override
-    public Object[] readToken(int entryCodePoint, Reader input) throws IOException {
+    public ScanObject readToken(int entryCodePoint, Reader input) throws IOException {
         StringBuilder builder = new StringBuilder();
         Token token = null;
         int rows = 0;
@@ -80,6 +81,6 @@ public class StringScanner implements Scanner2.Subscanner {
                 token = new Token.StringToken(builder.toString());
             }
         }
-        return new Object[]{token, rows, columns, next};
+        return new ScanObject(token, rows, columns, next);
     }
 }

@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @author markus
  */
-public class Rule implements Comparable<Rule> {
+public class Rule implements Parser2.ParseObject, Comparable<Rule> {
 
     private final NonTerminal lhs;
     private final Variable[] rhs;
