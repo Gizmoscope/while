@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 import frontend.Token.Symbol;
+import java.io.Reader;
+import threading.BoundedBuffer;
 
 /**
  *
@@ -16,20 +18,22 @@ import frontend.Token.Symbol;
 public class Scanner2 {
 
     private final TokenTree tokenTree;
-    private BufferedReader input;
+    private Reader input;
     private Predicate<Integer> terminator;
+    private Map<Integer, Subparser> subparsers;
     private int next;
 
     private int row;
     private int column;
 
     /**
-     * Create a new Scanner with empty token tree and whitespaces as only terminators.
-     * To use the scanner first add tokens, terminators and (most importantly)
-     * an input stream.
+     * Create a new Scanner with empty token tree and whitespaces as only
+     * terminators. To use the scanner first add tokens, terminators and (most
+     * importantly) an input stream.
      */
     public Scanner2() {
         tokenTree = new TokenTree("");
+        subparsers = new HashMap<>();
         terminator = (Integer c) -> {
             return Character.isWhitespace(c);
         };
@@ -39,15 +43,29 @@ public class Scanner2 {
     /**
      * Read the next token from the input stream. The token will be found in the
      * token tree or is an identifyer, otherwise.
-     * 
+     *
      * @return next token
-     * @throws IOException 
+     * @throws IOException
      */
     public Token nextToken() throws IOException {
         skipWhitespaces();
         if (next == -1) {
             // the stream ended (End Of File)
             return Token.EOF;
+        }
+        // trigger subparser if next is an entryCharacter
+        if(subparsers.containsKey(next)) {
+            Object[] result = subparsers.get(next).readToken(next, input);
+            int rows = (int) result[1];
+            int cols = (int) result[2];
+            next = (int) result[3];
+            if(rows == 0) {
+                column += cols;
+            } else {
+                row += rows;
+                column = cols;
+            }
+            return (Token) result[0];
         }
         // remember the position in the token tree
         TokenTree position = tokenTree;
@@ -88,7 +106,7 @@ public class Scanner2 {
      * Add a token to the token tree of the scanner. If another token with the
      * same input string is already contained in the token tree, there will be
      * thrown an exeption.
-     * 
+     *
      * @param symbol a symbol token
      */
     public void addSymbol(Symbol symbol) {
@@ -113,6 +131,17 @@ public class Scanner2 {
     }
 
     /**
+     * Add a subparser to be triggered on the given entryCharacter.
+     * 
+     * @param entryCodePoint character that triggers the subparser
+     * @param subparser the subparser
+     */
+    public void addSubparser(int entryCodePoint, Subparser subparser) {
+        subparsers.put(entryCodePoint, subparser);
+    }
+
+    
+    /**
      * A terminator is a predicate that decides whether a character can be part
      * of an identifier. The scanning of an identifier ends when reaching a
      * terminator.
@@ -129,7 +158,7 @@ public class Scanner2 {
 
     /**
      * @param inputStream a new input stream to be read from
-     * @throws IOException 
+     * @throws IOException
      */
     public void setInput(InputStream inputStream) throws IOException {
         input = new BufferedReader(new InputStreamReader(inputStream));
@@ -159,6 +188,20 @@ public class Scanner2 {
         column++;
     }
 
+    public void startScan(BoundedBuffer<Token> buffer) {
+        new Thread(() -> {
+            try {
+                Token token = nextToken();
+                while (token != Token.EOF) {
+                    buffer.put(token);
+                    token = nextToken();
+                }
+            } catch (IOException e) {
+                buffer.put(new Token.Error(e.getMessage()));
+            }
+        }).start();
+    }
+
     /*
      * The TokenTree contains all tokens. It is structured by their input strings.
      * An input string gets split into its characters each of which lies in one
@@ -177,6 +220,29 @@ public class Scanner2 {
             children = new HashMap<>();
             this.begin = begin;
         }
+
+    }
+
+    /**
+     * A subparser can be triggered by a parser to parse a complicated token that
+     * has no finite representation and therefore doesn't fit into the tokentree.
+     * Examples are numericals and strings.
+     */
+    public static interface Subparser {
+
+        /**
+         * Reads a single token from the input.It returns an array of the form
+         * {token, rows, columns, codePoint}, where token is the read token, rows
+         * counts '\n' the parser read, columns counts the number of characters
+         * after the last '\n' and codePoint is the last read character.
+         * 
+         * @param entryCodePoint character that triggers the subparser
+         * @param input inputstream to parse from
+         * @return the token, the number of rows and columns and the last 
+         * character that were read
+         * @throws java.io.IOException
+         */
+        public Object[] readToken(int entryCodePoint, Reader input)  throws IOException;
 
     }
 
