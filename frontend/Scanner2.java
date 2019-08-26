@@ -20,7 +20,7 @@ public class Scanner2 {
     private final TokenTree tokenTree;
     private Reader input;
     private Predicate<Integer> terminator;
-    private Map<Integer, Subparser> subparsers;
+    private Map<Integer, Subscanner> subscanners;
     private int next;
 
     private int row;
@@ -33,7 +33,7 @@ public class Scanner2 {
      */
     public Scanner2() {
         tokenTree = new TokenTree("");
-        subparsers = new HashMap<>();
+        subscanners = new HashMap<>();
         terminator = (Integer c) -> {
             return Character.isWhitespace(c);
         };
@@ -49,13 +49,13 @@ public class Scanner2 {
      */
     public Token nextToken() throws IOException {
         skipWhitespaces();
-        if (next == -1) {
+        if (next < 0) {
             // the stream ended (End Of File)
             return Token.EOF;
         }
-        // trigger subparser if next is an entryCharacter
-        if(subparsers.containsKey(next)) {
-            Object[] result = subparsers.get(next).readToken(next, input);
+        // trigger subscanner if next is an entryCharacter
+        if(subscanners.containsKey(next)) {
+            Object[] result = subscanners.get(next).readToken(next, input);
             int rows = (int) result[1];
             int cols = (int) result[2];
             next = (int) result[3];
@@ -73,7 +73,7 @@ public class Scanner2 {
             // Step into the tree along read characters
             position = position.children.get(next);
             next();
-            if (next == -1 || terminator.test(next)) {
+            if (next < 0 || terminator.test(next)) {
                 // the stream ended or a terminator interupts the scan
                 // check wether the last part is a token or not (i.e. identifier)
                 if (position.token != null) {
@@ -136,8 +136,8 @@ public class Scanner2 {
      * @param entryCodePoint character that triggers the subparser
      * @param subparser the subparser
      */
-    public void addSubparser(int entryCodePoint, Subparser subparser) {
-        subparsers.put(entryCodePoint, subparser);
+    public void addSubparser(int entryCodePoint, Subscanner subparser) {
+        subscanners.put(entryCodePoint, subparser);
     }
 
     
@@ -188,14 +188,21 @@ public class Scanner2 {
         column++;
     }
 
+    /**
+     * Scanns the stream and passes the token to the buffer. This creates a new
+     * thread. The scan ends after reaching the end of file. The scanner then 
+     * passes Token.EOF to the buffer.
+     * 
+     * @param buffer A bounded buffer
+     */
     public void startScan(BoundedBuffer<Token> buffer) {
         new Thread(() -> {
             try {
                 Token token = nextToken();
-                while (token != Token.EOF) {
+                do {
                     buffer.put(token);
                     token = nextToken();
-                }
+                } while (token != Token.EOF);
             } catch (IOException e) {
                 buffer.put(new Token.Error(e.getMessage()));
             }
@@ -224,11 +231,11 @@ public class Scanner2 {
     }
 
     /**
-     * A subparser can be triggered by a parser to parse a complicated token that
+     * A subscanner can be triggered by a scanner to scan a complicated token that
      * has no finite representation and therefore doesn't fit into the tokentree.
      * Examples are numericals and strings.
      */
-    public static interface Subparser {
+    public static interface Subscanner {
 
         /**
          * Reads a single token from the input.It returns an array of the form

@@ -2,14 +2,14 @@ package main;
 
 import frontend.BasicRuleSet;
 import frontend.Grammar;
-import frontend.IntegerParser;
+import frontend.IntegerScanner;
 import frontend.Parser;
 import frontend.NonTerminal;
 import frontend.Rule;
 import java.io.IOException;
 import java.io.InputStream;
 import frontend.Scanner2;
-import frontend.StringParser;
+import frontend.StringScanner;
 import frontend.Token;
 import frontend.Variable;
 import java.util.Collection;
@@ -65,8 +65,8 @@ public class Main {
     private static void test1() throws IOException {
         InputStream input = System.in;
         Scanner2 scanner = new Scanner2();
-        scanner.addSubparser('"', new StringParser(false));
-        IntegerParser integerParser = new IntegerParser();
+        scanner.addSubparser('"', new StringScanner(false));
+        IntegerScanner integerParser = new IntegerScanner();
         for (char i = '0'; i <= '9'; i++) {
             scanner.addSubparser(i, integerParser);
         }
