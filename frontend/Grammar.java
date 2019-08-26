@@ -2,10 +2,12 @@ package frontend;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -28,6 +30,41 @@ public class Grammar {
             ll1Rules.addAll(trees.get(n).generateLLRules(n));
         });
         return ll1Rules;
+    }
+
+    public static Collection<NonTerminal> extractNonTerminals(Collection<Rule> rules) {
+        return rules.stream().map(r -> {
+            Set<NonTerminal> nts = new HashSet<>();
+            nts.add(r.getLhs());
+            for(Variable var: r.getRhs()) {
+                if(var instanceof NonTerminal) {
+                    nts.add((NonTerminal) var);
+                }
+            }
+            return nts;
+        }).reduce((a, b) -> {
+            Set<NonTerminal> union = new HashSet<>();
+            union.addAll(a);
+            union.addAll(b);
+            return union;
+        }).orElse(Collections.EMPTY_SET);
+    }
+
+    public static Collection<Token> extractTerminals(Collection<Rule> rules) {
+        return rules.stream().map(r -> {
+            Set<Token> ts = new HashSet<>();
+            for(Variable var: r.getRhs()) {
+                if(var instanceof Token) {
+                    ts.add((Token) var);
+                }
+            }
+            return ts;
+        }).reduce((a, b) -> {
+            Set<Token> union = new HashSet<>();
+            union.addAll(a);
+            union.addAll(b);
+            return union;
+        }).orElse(Collections.EMPTY_SET);
     }
 
     private static class RuleTree {
