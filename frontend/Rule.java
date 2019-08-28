@@ -9,9 +9,18 @@ import java.util.Objects;
  */
 public class Rule implements Parser2.ParseObject, Comparable<Rule> {
 
+    // Left hand side (the non-terminal)
     private final NonTerminal lhs;
+    // Right hand side (list of variables)
     private final Variable[] rhs;
 
+    /**
+     * Creates a Rule of the form S -> A_1 A_2...A_n. Here S is a non-terminal
+     * and the A_i are variables, i.e. terminals or non-terminals.
+     * 
+     * @param lhs Left hand side (the non-terminal)
+     * @param rhs Right hand side (list of variables)
+     */
     public Rule(NonTerminal lhs, Variable... rhs) {
         if (lhs == null) {
             throw new NullPointerException("Left hand side must not be null.");
@@ -28,6 +37,7 @@ public class Rule implements Parser2.ParseObject, Comparable<Rule> {
     public String toString() {
         StringBuilder builder = new StringBuilder(lhs.toString());
         builder.append(" → ");
+        // If the right hand side is empty the rule produces the empty word ε.
         if (rhs.length == 0) {
             builder.append('ε');
         } else {
@@ -39,10 +49,16 @@ public class Rule implements Parser2.ParseObject, Comparable<Rule> {
         return builder.toString();
     }
 
+    /**
+     * @return Left hand side (the non-terminal)
+     */
     public NonTerminal getLhs() {
         return lhs;
     }
 
+    /**
+     * @return Right hand side (list of variables)
+     */
     public Variable[] getRhs() {
         return rhs;
     }
@@ -73,6 +89,12 @@ public class Rule implements Parser2.ParseObject, Comparable<Rule> {
         return Arrays.deepEquals(this.rhs, other.rhs);
     }
 
+    /**
+     * Compares rules by there string representation.
+     * 
+     * @param r another rule
+     * @return comparison of string representations
+     */
     @Override
     public int compareTo(Rule r) {
         int c = lhs.getName().compareTo(r.lhs.getName());

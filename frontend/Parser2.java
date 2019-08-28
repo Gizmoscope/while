@@ -27,7 +27,13 @@ public class Parser2 {
         this.messages = new LinkedList<>();
     }
 
-    public boolean parse(NonTerminal start, BoundedBuffer<ParseObject> buffer) {
+    public void startParsing(NonTerminal start, BoundedBuffer<ParseObject> buffer) {
+        new Thread(() -> {
+            parse(start, buffer);
+        }, "Parser").start();
+    }
+    
+    private boolean parse(NonTerminal start, BoundedBuffer<ParseObject> buffer) {
         word = new Stack<>();
         word.add(start);
         ScanObject scanObject = tokenStream.get();
@@ -37,6 +43,7 @@ public class Parser2 {
                 messages.add(new Message(Message.MESSAGE, "Traversion of the parse tree is finished!",
                         scanObject.getLine(), scanObject.getPositionInLine()));
                 if (EOF.equals(nextToken)) {
+                    buffer.put(EOF);
                     return true;
                 } else {
                     messages.add(new Message(Message.WARNING, "Didn't reach the end of the imput!",

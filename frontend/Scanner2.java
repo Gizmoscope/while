@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import frontend.Token.Symbol;
 import java.io.Reader;
+import java.io.StringReader;
 import threading.BoundedBuffer;
 
 /**
@@ -41,6 +42,23 @@ public class Scanner2 {
             return Character.isWhitespace(c);
         };
         setInput(inputStream);
+    }
+
+    /**
+     * Create a new Scanner with empty token tree and whitespaces as only
+     * terminators. To use the scanner first add tokens, terminators and 
+     * subscanners.
+     * 
+     * @param input an input string to be read from
+     * @throws java.io.IOException
+     */
+    public Scanner2(String input) throws IOException {
+        tokenTree = new TokenTree("");
+        subscanners = new HashMap<>();
+        terminator = (Integer c) -> {
+            return Character.isWhitespace(c);
+        };
+        setInput(new StringReader(input));
     }
 
     /**
@@ -164,7 +182,11 @@ public class Scanner2 {
      * @throws IOException
      */
     private void setInput(InputStream inputStream) throws IOException {
-        input = new BufferedReader(new InputStreamReader(inputStream));
+        setInput(new BufferedReader(new InputStreamReader(inputStream)));
+    }
+    
+    private void setInput(Reader reader) throws IOException {
+        input = reader;
         row = 0;
         column = 0;
         next();
@@ -201,15 +223,15 @@ public class Scanner2 {
     public void startScan(BoundedBuffer<ScanObject> buffer) {
         new Thread(() -> {
             try {
-                Token token = nextToken();
+                Token token;
                 do {
-                    buffer.put(new ScanObject(token, row, column, next));
                     token = nextToken();
+                    buffer.put(new ScanObject(token, row, column, next));
                 } while (token != Token.EOF);
             } catch (IOException e) {
                 buffer.put(new ScanObject(new Token.Error(e.getMessage()), row, column, next));
             }
-        }).start();
+        }, "Scanner").start();
     }
 
     /*

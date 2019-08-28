@@ -30,7 +30,8 @@ public class ParsingTable {
     }
 
     public Rule getRule(NonTerminal nonTerminal, Token token) {
-        return rules.get(new Pair<>(nonTerminal, token));
+        Pair<NonTerminal, Token> pair = new Pair<>(nonTerminal, token);
+        return rules.get(pair);
     }
 
     public List<Token> getPossibleTokensFor(NonTerminal nonTerminal) {

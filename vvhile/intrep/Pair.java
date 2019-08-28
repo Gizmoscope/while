@@ -57,13 +57,10 @@ public class Pair<F, S> {
         return (first == null ? 0 : first.hashCode()) ^ (second == null ? 0 : second.hashCode());
     }
 
-    /**
-     * Convenience method for creating an appropriately typed pair.
-     * @param a the first object in the Pair
-     * @param b the second object in the pair
-     * @return a Pair that is templatized with the types of a and b
-     */
-    public static <A, B> Pair <A, B> create(A a, B b) {
-        return new Pair<A, B>(a, b);
+    @Override
+    public String toString() {
+        return "(" + first + ", " + second + ')';
     }
+    
+    
 }

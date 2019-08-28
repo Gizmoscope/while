@@ -194,12 +194,13 @@ public class BasicRuleSet {
     private static Map<NonTerminal, Collection<Token>> follows(
             Collection<Rule> rules,
             Map<Variable, Collection<Token>> firsts,
-            Collection<NonTerminal> nonterminals
+            Collection<NonTerminal> nonterminals,
+            NonTerminal start
     ) {
         Map<NonTerminal, Collection<Token>> follows = new HashMap<>();
         nonterminals.stream().forEach((n) -> {
             Collection<Token> follow = new LinkedHashSet<>();
-            if (STM.equals(n)) {
+            if (start.equals(n)) {
                 follow.add(EOF);
             }
             follows.put(n, follow);
@@ -248,7 +249,8 @@ public class BasicRuleSet {
     public static ParsingTable generateParsingTable(
             Collection<Rule> rules,
             Collection<NonTerminal> nonTerminals,
-            Collection<Token> terminals
+            Collection<Token> terminals,
+            NonTerminal start
     ) {
         Map<Variable, Collection<Token>> firsts = firsts(rules, nonTerminals, terminals);
 //        for(Variable v: firsts.keyCollection()) {
@@ -259,7 +261,7 @@ public class BasicRuleSet {
 //            System.out.println("FIRST(" + r + ") = " + firstOfRule(r, firsts));
 //        }
 //        System.out.println();
-        Map<NonTerminal, Collection<Token>> follows = follows(rules, firsts, nonTerminals);
+        Map<NonTerminal, Collection<Token>> follows = follows(rules, firsts, nonTerminals, start);
 //        for(NonTerminal n: follows.keyCollection()) {
 //            System.out.println("FOLLOW(" + n + ") = " + follows.get(n));
 //        }
