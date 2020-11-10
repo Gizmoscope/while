@@ -21,4 +21,4 @@ After the compilation the formal construct build from the code can be analysed u
 
 ### Where to begin?
 
-If you want to understand this project in more detail or aim to create a compiler for your own programming language, then take a look at the [getting started section](getting started/README.md).
+If you want to understand this project in more detail or aim to create a compiler for your own programming language, then take a look at the [getting started section](getting_started/README.md).
