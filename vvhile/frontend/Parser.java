@@ -1,15 +1,10 @@
 package vvhile.frontend;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
 import vvhile.frontend.Scanner.ScanObject;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import vvhile.basic.language.BasicRuleSet;
-import vvhile.basic.language.BasicTokens;
-import vvhile.basic.language.IntegerScanner;
-import vvhile.basic.language.StringScanner;
 import static vvhile.frontend.Token.EOF;
 import vvhile.intrep.ASTCompiler;
 import vvhile.intrep.ASTElement;
@@ -129,8 +124,10 @@ public class Parser {
                 Rule rule = parsingTable.getRule(nonTerminal, nextToken);
                 // if there isn't any, the input does not match the grammar
                 if (rule == null) {
-                    messages.add(new Message(Message.ERROR, "No applicable Rule found! \n   Current Nonterminal is "
-                            + nonTerminal + " and next Token is \"" + nextToken + "\".",
+                    messages.add(new Message(Message.ERROR, "No applicable Rule found!\n"
+                            + "   Expected " + parsingTable.getPossibleTokensFor(nonTerminal) + "\n"
+                            + "   but next Token is \"" + nextToken + "\".\n"
+                            + "   Current Nonterminal is " + nonTerminal + ".",
                             scanObject.getLine(), scanObject.getPositionInLine()));
                     return false;
                 }
