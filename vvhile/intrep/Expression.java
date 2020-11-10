@@ -5,37 +5,113 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
-import vvhile.basic.operators.Operator;
-import vvhile.basic.hoare.BooleanFormula;
+import vvhile.hoare.BooleanFormula;
 
 /**
+ * An expression is a formular of a given type, called sort, that can be
+ * evaluated in a given state. An expression contains variables, whose value is
+ * determined by a state, and operations, called functions, that combine the
+ * values of variables and constants.
  *
  * @author markus
  */
-public interface Expression {
+public interface Expression extends ASTElement {
 
+    /**
+     * The boolean sort. Variables can take the values <code> true </code> and
+     * <code> false </code>.
+     */
     public static final String SORT_BOOLEAN = Boolean.class.getSimpleName();
+
+    /**
+     * The integer sort. Variables can take any integer as a value.
+     */
     public static final String SORT_INTEGER = BigInteger.class.getSimpleName();
+
+    /**
+     * The string sort. Variables can take any string as a value.
+     */
+    public static final String SORT_STRING = String.class.getSimpleName();
+
+    /**
+     * The set sort. Variables can take any set as a value.
+     */
     public static final String SORT_SET = java.util.Set.class.getSimpleName();
+
+    /**
+     * The list sort. Variables can take any list as a value.
+     */
     public static final String SORT_LIST = java.util.List.class.getSimpleName();
+
+    /**
+     * The so-called unknown sort. The sort of a variable with this sort is not
+     * yet determined and can still be changed.
+     */
     public static final String SORT_UNKNOWN = "Unknown";
 
+    /**
+     * Determines the value of the expression in the given state.
+     *
+     * @param state a state
+     * @return the value of the expression in the given state.
+     */
     public Object getValue(State state);
 
+    /**
+     * Replaces every occurrence of the given variable by the given expression.
+     *
+     * @param expression an expression
+     * @param variable a variable
+     * @return the expression after every occurrence of the variable is replaced
+     * by the expression.
+     */
     public Expression subtitute(Expression expression, Variable variable);
 
+    /**
+     * Tries to replace a subExpression of this expression by the given
+     * expression. This is a useful method for theorem provers.
+     *
+     * @param expression an expression
+     * @param subExpression an expression that is propably a subexpression of
+     * this expression
+     * @return a substituted expression if successful or null otherwise
+     */
     public Expression trySubtitute(Expression expression, Expression subExpression);
 
+    /**
+     * @return the sort of this variable. It might be unknown.
+     */
     public String getSort();
 
+    /**
+     * Gives the expression a sort. This must only happen if the sort was
+     * unknown before.
+     *
+     * @param newSort a sort
+     * @return this expression but with an assigned sort
+     */
     public Expression setSort(String newSort);
 
+    /**
+     * @return set of all free variables appearing in the expression.
+     */
     public java.util.Set<Variable> freeVariables();
 
+    /**
+     * @return set of all constants appearing in the expression.
+     */
     public java.util.Set<Constant> constants();
 
+    /**
+     * @param latex true if the return string should represent LaTeX code
+     * @return a string representation
+     */
     public String toString(boolean latex);
 
+    /**
+     * A constant is an expression that evaluates to the same value in any
+     * state.
+     */
     public static class Constant implements Expression {
 
         public static boolean showSorts = true;
@@ -43,6 +119,12 @@ public interface Expression {
         private final String sort;
         private final Object value;
 
+        /**
+         * Creates a new constant of the given value and sort.
+         *
+         * @param sort a sort
+         * @param value a value of that sort
+         */
         public Constant(String sort, Object value) {
             this.sort = sort;
             this.value = value;
@@ -124,6 +206,10 @@ public interface Expression {
 
     }
 
+    /**
+     * A variable is an expression with a given name whose value depends
+     * completely on the state its evaluated in.
+     */
     public static class Variable implements Expression {
 
         public static boolean showSorts = true;
@@ -132,10 +218,24 @@ public interface Expression {
         private final String name;
         private final String index;
 
+        /**
+         * Creates a new variable of the given name and sort.
+         *
+         * @param sort a sort
+         * @param name a name
+         */
         public Variable(String sort, String name) {
             this(sort, name, null);
         }
 
+        /**
+         * Creates a new variable of the given name, index and sort. The index
+         * can be used to have more flexibility in the naming of variables.
+         *
+         * @param sort a sort
+         * @param name a name
+         * @param index an index
+         */
         public Variable(String sort, String name, String index) {
             this.sort = sort;
             this.name = name;
@@ -157,10 +257,16 @@ public interface Expression {
             return equals(variable) ? expression : this;
         }
 
+        /**
+         * @return the name of the variable
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * @return the index of the variable
+         */
         public String getIndex() {
             return index;
         }
@@ -202,7 +308,6 @@ public interface Expression {
         @Override
         public int hashCode() {
             int hash = 5;
-            hash = 67 * hash + Objects.hashCode(this.sort);
             hash = 67 * hash + Objects.hashCode(this.name);
             hash = 67 * hash + Objects.hashCode(this.index);
             return hash;
@@ -220,9 +325,6 @@ public interface Expression {
                 return false;
             }
             final Variable other = (Variable) obj;
-            if (!Objects.equals(this.sort, other.sort)) {
-                return false;
-            }
             if (!Objects.equals(this.name, other.name)) {
                 return false;
             }
@@ -239,12 +341,20 @@ public interface Expression {
             return equals(subExpression) ? expression : null;
         }
 
+        /**
+         * @return the variable but without the index
+         */
         public Variable dropIndex() {
             return new Variable(sort, name);
         }
 
     }
 
+    /**
+     * A function is an expression that combines several expressions into a new
+     * one. A function always has an operator that serves as an interpretation
+     * for the function.
+     */
     public static class Function implements Expression {
 
         private final String[] argSorts;
@@ -254,15 +364,35 @@ public interface Expression {
         private final boolean infix;
         private final boolean parentheses;
 
+        /**
+         * Creates a new function from the given data. It is important that the
+         * number of sorts for the arguments and the number of expressions for
+         * the arguments agree. Of course the interpretation, as an operator,
+         * should also have the same number of arguments and the sorts have to
+         * be compatible.
+         *
+         * @param argSorts a list of sorts, the sorts of the arguments
+         * @param sort the sort of the resulting expression
+         * @param args a list of expressions, the arguments
+         * @param interpretation an operation used for the interpretation, aka
+         * evaluation
+         * @param infix should this function be parsed useing infix notation
+         * @param parentheses should the string representation of this
+         * expression be enclosed with parentheses
+         */
         public Function(String[] argSorts, String sort, Expression[] args, Operator interpretation, boolean infix, boolean parentheses) {
             if (args.length != argSorts.length) {
                 throw new IllegalArgumentException("Wrong number of arguments.");
             }
             for (int i = 0; i < args.length; i++) {
                 if (!(args[i].getSort().equals(argSorts[i]) || "Object".equals(argSorts[i]))) {
+                    // Using this expression as the contex, the sort of the
+                    // argument can be determined
                     if ("Object".equals(args[i].getSort()) || Expression.SORT_UNKNOWN.equals(args[i].getSort())) {
+                        // Give the argument the correct sort
                         args[i].setSort(argSorts[i]);
                     } else {
+                        // The sort didn't match the already existing sort
                         throw new IllegalArgumentException("Wrong sort.");
                     }
                 }
@@ -278,10 +408,16 @@ public interface Expression {
             this.parentheses = parentheses;
         }
 
+        /**
+         * @return the list of argument expressions of this function
+         */
         public Expression[] getArgs() {
             return args;
         }
 
+        /**
+         * @return the operator used for interpreting/evaluating this expression
+         */
         public Operator getInterpretation() {
             return interpretation;
         }
@@ -289,21 +425,25 @@ public interface Expression {
         @Override
         public Object getValue(State state) {
             Object[] argValues = new Object[args.length];
+            // Determine the value of all arguments in the given state...
             for (int i = 0; i < args.length; i++) {
                 argValues[i] = args[i].getValue(state);
                 if (argValues[i] == null) {
                     throw new IllegalArgumentException("One of the arguments has no value.");
                 }
             }
+            // ...and use them as arguments for the interpretation operator
             return interpretation.evaluate(argValues);
         }
 
         @Override
         public Expression subtitute(Expression expression, Variable variable) {
             Expression[] newArgs = new Expression[args.length];
+            // the substitution has to be done for every argument
             for (int i = 0; i < args.length; i++) {
                 newArgs[i] = args[i].subtitute(expression, variable);
             }
+            // If this is a boolean formular the result should again be a boolean formular.
             if (Expression.SORT_BOOLEAN.equals(sort)) {
                 return new BooleanFormula.BooleanFunction(argSorts, newArgs, interpretation, infix, parentheses);
             } else {
@@ -431,108 +571,6 @@ public interface Expression {
                 }
             }
         }
-    }
-
-    public static class Quantifier implements BooleanFormula {
-
-        private final boolean forAll;
-        private final Variable variable;
-        private final Expression argument;
-
-        public Quantifier(boolean forAll, Variable variable, Expression argument) {
-            this.forAll = forAll;
-            this.variable = variable;
-            this.argument = argument;
-        }
-
-        @Override
-        public Object getValue(State state) {
-            if (!argument.freeVariables().contains(variable)) {
-                return argument.getValue(state);
-            }
-            return null;
-        }
-
-        @Override
-        public Expression subtitute(Expression expression, Variable variable) {
-            Variable newVar = new Variable(this.variable.getSort(), this.variable.getName() + "'");
-            return new Quantifier(forAll, newVar, argument.subtitute(newVar, this.variable).subtitute(expression, variable));
-        }
-
-        @Override
-        public String getSort() {
-            return SORT_BOOLEAN;
-        }
-
-        @Override
-        public Expression setSort(String newSort) {
-            throw new UnsupportedOperationException("Sort of a quantifier is always " + SORT_BOOLEAN + ".");
-        }
-
-        @Override
-        public java.util.Set<Variable> freeVariables() {
-            java.util.Set<Variable> variables = argument.freeVariables();
-            variables.remove(variable);
-            return variables;
-        }
-
-        @Override
-        public java.util.Set<Constant> constants() {
-            return argument.constants();
-        }
-
-        @Override
-        public String toString() {
-            return toString(false);
-        }
-
-        @Override
-        public String toString(boolean latex) {
-            return (forAll
-                    ? (latex ? "(\\forall" : "(∀")
-                    : (latex ? "(\\exists" : "(∃"))
-                    + variable + "." + argument + ")";
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 89 * hash + (this.forAll ? 1 : 0);
-            hash = 89 * hash + Objects.hashCode(this.variable);
-            hash = 89 * hash + Objects.hashCode(this.argument);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final Quantifier other = (Quantifier) obj;
-            if (this.forAll != other.forAll) {
-                return false;
-            }
-            if (!Objects.equals(this.variable, other.variable)) {
-                return false;
-            }
-            return Objects.equals(this.argument, other.argument);
-        }
-
-        @Override
-        public Expression trySubtitute(Expression expression, Expression subExpression) {
-            if (subExpression.freeVariables().contains(variable)) {
-                return null;
-            }
-            Expression sub = argument.trySubtitute(expression, subExpression);
-            return sub == null ? null : new Quantifier(forAll, variable, sub);
-        }
-
     }
 
 }

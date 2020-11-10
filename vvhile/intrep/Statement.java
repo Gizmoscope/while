@@ -3,35 +3,77 @@ package vvhile.intrep;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import vvhile.hoare.BooleanFormula;
 
 /**
+ * A statement is a piece of a program. Statements can be put together to create
+ * new statements. One can run a statement in a given state to obtain the state
+ * an a remaining statement that results in running that piece of program. The
+ * pair consisting of statement and state is a configuration.
  *
  * @author markus
  */
-public interface Statement {
+public interface Statement extends ASTElement {
 
+    /**
+     * Executes this statement in the given state.
+     *
+     * @param state a state
+     * @return resulting configuration, ie resulting statement + state
+     */
     public Configuration run(State state);
 
+    /**
+     * @param latex true if the return string should represent LaTeX code
+     * @return a string representation
+     */
     public String toString(boolean latex);
 
+    /**
+     * @return the set of all variables appearing in this statement
+     */
     public Set<Expression.Variable> variables();
 
+    /**
+     * @return the set of all variables appearing in this statement that are
+     * written to
+     */
     public Set<Expression.Variable> writtenVariables();
 
+    /**
+     * @return the set of all variables appearing in this statement that are
+     * read from
+     */
     public Set<Expression.Variable> readVariables();
 
-    public Set<Statement> subStatements();
-
+    /**
+     * An assignment is a statement of the form <code> x := a </code> where 
+     * <code> x </code> is a variable and <code> a </code> is an expression. If
+     * an assignment is executed, then the value of the variable in the given
+     * state is substituted by the value of the expression evaluated in that
+     * state.
+     */
     public static class Assignment implements Statement {
 
         private final Expression.Variable variable;
         private final Expression expression;
 
+        /**
+         * Creates a new assignment given the variable and the expression.
+         *
+         * @param variable a variable
+         * @param expression an expression
+         */
         public Assignment(Expression.Variable variable, Expression expression) {
             this.variable = variable;
             this.expression = expression;
         }
 
+        /**
+         * The value of the variable in the given state is substituted by the
+         * value of the expression evaluated in the state. The resulting
+         * configuration contains no statement anymore but only the new state.
+         */
         @Override
         public Configuration run(State state) {
             return new Configuration(null,
@@ -43,10 +85,16 @@ public interface Statement {
             return toString(false);
         }
 
+        /**
+         * @return the variable, aka left hand side
+         */
         public Expression.Variable getVariable() {
             return variable;
         }
 
+        /**
+         * @return the expression, aka right hand side
+         */
         public Expression getExpression() {
             return expression;
         }
@@ -76,17 +124,17 @@ public interface Statement {
             return expression.freeVariables();
         }
 
-        @Override
-        public Set<Statement> subStatements() {
-            Set<Statement> statements = new HashSet<>();
-            statements.add(this);
-            return statements;
-        }
-
     }
 
+    /**
+     * A skip statement is an empty statement that does not do anything. It is
+     * useful for instance for empty if or else clauses.
+     */
     public static class Skip implements Statement {
 
+        /**
+         * Creates a new skip statement.
+         */
         public Skip() {
         }
 
@@ -120,20 +168,23 @@ public interface Statement {
             return Collections.EMPTY_SET;
         }
 
-        @Override
-        public Set<Statement> subStatements() {
-            Set<Statement> statements = new HashSet<>();
-            statements.add(this);
-            return statements;
-        }
-
     }
 
+    /**
+     * A composition is a pair of two statements that are meant to be executed
+     * one after the other.
+     */
     public static class Composition implements Statement {
 
         private final Statement firstStatement;
         private final Statement secondStatement;
 
+        /**
+         * Creates a composition of the given statements
+         *
+         * @param firstStatement a statement
+         * @param secondStatement a statement
+         */
         public Composition(Statement firstStatement, Statement secondStatement) {
             this.firstStatement = firstStatement;
             this.secondStatement = secondStatement;
@@ -141,10 +192,17 @@ public interface Statement {
 
         @Override
         public Configuration run(State state) {
+            // Run the first statement
             Configuration newConf = firstStatement.run(state);
+            // if the resulting configuration does not contain a resulting
+            // statement, the result of this method is given by the new state
+            // and the second statement of the composition
             if (newConf.getProgram() == null) {
                 return new Configuration(secondStatement, newConf.getState());
             } else {
+                // otherwise the result given by the new state and the composition
+                // of the resulting statement and the second statement of the
+                // composition
                 return new Configuration(new Composition(
                         newConf.getProgram(),
                         secondStatement
@@ -157,10 +215,16 @@ public interface Statement {
             return toString(false);
         }
 
+        /**
+         * @return the first statement
+         */
         public Statement getFirstStatement() {
             return firstStatement;
         }
 
+        /**
+         * @return the second statement
+         */
         public Statement getSecondStatement() {
             return secondStatement;
         }
@@ -194,24 +258,30 @@ public interface Statement {
             return variables;
         }
 
-        @Override
-        public Set<Statement> subStatements() {
-            Set<Statement> statements = new HashSet<>();
-            statements.add(this);
-            statements.addAll(firstStatement.subStatements());
-            statements.addAll(secondStatement.subStatements());
-            return statements;
-        }
-
     }
 
+    /**
+     * An if-then-else statement is a statement of the form 
+     * <code> if(b) { S_1 } else { S_2 } </code> where <code> b </code> is a
+     * condition and <code> S_1 </code> and <code> S_2 </code> are the
+     * corresponding conditional statements.
+     */
     public static class If implements Statement {
 
-        private final Expression condition;
+        private final BooleanFormula condition;
         private final Statement ifStatement;
         private final Statement elseStatement;
 
-        public If(Expression condition, Statement ifStatement, Statement elseStatement) {
+        /**
+         * Creates an if-then-else statement given the condition, the if and the
+         * else statement.
+         *
+         * @param condition a boolean formular
+         * @param ifStatement a statement to be executed if the condition is met
+         * @param elseStatement a statement to be executed if the condition is
+         * not met
+         */
+        public If(BooleanFormula condition, Statement ifStatement, Statement elseStatement) {
             this.condition = condition;
             this.ifStatement = ifStatement;
             this.elseStatement = elseStatement;
@@ -230,14 +300,23 @@ public interface Statement {
             }
         }
 
-        public Expression getCondition() {
+        /**
+         * @return the condition
+         */
+        public BooleanFormula getCondition() {
             return condition;
         }
 
+        /**
+         * @return the statement to be executed if the condition is met
+         */
         public Statement getIfStatement() {
             return ifStatement;
         }
 
+        /**
+         * @return the statement to be executed if the condition is not met
+         */
         public Statement getElseStatement() {
             return elseStatement;
         }
@@ -281,23 +360,27 @@ public interface Statement {
             return variables;
         }
 
-        @Override
-        public Set<Statement> subStatements() {
-            Set<Statement> statements = new HashSet<>();
-            statements.add(this);
-            statements.addAll(ifStatement.subStatements());
-            statements.addAll(elseStatement.subStatements());
-            return statements;
-        }
-
     }
 
+    /**
+     * A while statement is a statement of the form 
+     * <code> while(b) { S } </code> where <code> b </code> is a condition and      
+     * <code> S </code> is the statement that is meant to be executet as long as
+     * the condition is fulfilled.
+     */
     public static class While implements Statement {
 
-        private final Expression condition;
+        private final BooleanFormula condition;
         private final Statement statement;
 
-        public While(Expression condition, Statement statement) {
+        /**
+         * Creates a while statement given the condition and the statement.
+         *
+         * @param condition a boolean formular
+         * @param statement a statement to be executed as long as the condition
+         * is met
+         */
+        public While(BooleanFormula condition, Statement statement) {
             this.condition = condition;
             this.statement = statement;
         }
@@ -311,10 +394,16 @@ public interface Statement {
             ), state);
         }
 
-        public Expression getCondition() {
+        /**
+         * @return the condition
+         */
+        public BooleanFormula getCondition() {
             return condition;
         }
 
+        /**
+         * @return the statement to be executed as long as the condition is met
+         */
         public Statement getStatement() {
             return statement;
         }
@@ -327,7 +416,7 @@ public interface Statement {
         @Override
         public String toString(boolean latex) {
             return (latex ? "\\lst{while} ($" : "while (")
-                    + condition.toString(latex) + (latex ? "$) \\{" : "= {")
+                    + condition.toString(latex) + (latex ? "$) \\{" : ") {")
                     + statement.toString(latex) + (latex ? "\\}" : "}");
         }
 
@@ -354,20 +443,21 @@ public interface Statement {
             return variables;
         }
 
-        @Override
-        public Set<Statement> subStatements() {
-            Set<Statement> statements = new HashSet<>();
-            statements.add(this);
-            statements.addAll(statement.subStatements());
-            return statements;
-        }
-
     }
 
+    /**
+     * A black box is a statement of unknown execution behaviour. It can stand
+     * for any statement. Most of the methods for statements cannot be called on
+     * a black box.
+     */
     public static class BlackBox implements Statement {
 
         private final String name;
 
+        /**
+         * Creates a new black box of the given name.
+         * @param name 
+         */
         public BlackBox(String name) {
             this.name = name;
         }
@@ -384,22 +474,17 @@ public interface Statement {
 
         @Override
         public Set<Expression.Variable> variables() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new UnsupportedOperationException("It is not known which variables a blackbox might contain.");
         }
 
         @Override
         public Set<Expression.Variable> writtenVariables() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new UnsupportedOperationException("It is not known which variables a blackbox might write to.");
         }
 
         @Override
         public Set<Expression.Variable> readVariables() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Set<Statement> subStatements() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new UnsupportedOperationException("It is not known which variables a blackbox might reads from");
         }
 
     }
