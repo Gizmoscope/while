@@ -25,12 +25,14 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataListener;
 import vvhile.util.BoundedBuffer;
+import vvhile.util.Experimental;
 import vvhile.util.Pair;
 
 /**
  *
  * @author markus
  */
+@Experimental
 public class BufferVisualization extends javax.swing.JFrame {
 
     /**

@@ -9,11 +9,19 @@ import vvhile.intrep.Configuration;
 import vvhile.intrep.Expression;
 import vvhile.intrep.State;
 import vvhile.intrep.Statement;
+import vvhile.util.Experimental;
 
 /**
+ * An annotated statement is a statement that is annotated by prefixes, infixes
+ * and postfixes. Annotated statements can be created from a Hoare tree and are
+ * used as an alternative representation that are more concise.
+ *
+ * This feature is still experimental and very ad-hoc. I hope this will change
+ * in the future.
  *
  * @author markus
  */
+@Experimental
 public class AnnotatedStatement implements Statement {
 
     public static final int PREFIX_POSITION = 0;

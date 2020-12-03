@@ -24,6 +24,9 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
     @Override
     public BooleanFormula subtitute(Expression expression, Variable variable);
 
+    @Override
+    public BooleanFormula fillBlackBox(BlackBox blackBox, BooleanFormula substitution);
+
     /**
      * Conjunction of several expressions.
      *
@@ -91,9 +94,9 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
 
         /**
          * If the variable that is to be substituted agrees with this object,
-         * then the given expression is returned. In that case the expression has
-         * to be a boolean formular.
-         * 
+         * then the given expression is returned. In that case the expression
+         * has to be a boolean formular.
+         *
          * @param expression an expression
          * @param variable a variable
          * @return the result of substituting the expression for the variable
@@ -109,6 +112,11 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
             } else {
                 return this;
             }
+        }
+
+        @Override
+        public BooleanFormula fillBlackBox(BlackBox blackBox, BooleanFormula substitution) {
+            return this;
         }
 
     }
@@ -129,6 +137,11 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
 
         @Override
         public BooleanFormula subtitute(Expression expression, Variable variable) {
+            return this;
+        }
+
+        @Override
+        public BooleanFormula fillBlackBox(BlackBox blackBox, BooleanFormula substitution) {
             return this;
         }
 
@@ -155,6 +168,11 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
         @Override
         public BooleanFormula subtitute(Expression expression, Variable variable) {
             return (BooleanFormula) super.subtitute(expression, variable);
+        }
+
+        @Override
+        public BooleanFormula fillBlackBox(BlackBox blackBox, BooleanFormula substitution) {
+            return (BooleanFormula) super.fillBlackBox(blackBox, substitution);
         }
 
     }
@@ -195,7 +213,7 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
         /**
          * The value of a blackbox cannot be determined. This method always
          * returns null
-         * 
+         *
          * @param state a state
          * @return null
          */
@@ -238,9 +256,10 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
         /**
          * Replaces the blackbox by an actual expression and applies all
          * substitutions that were applied to the blackbox.
-         * 
+         *
          * @param expression a boolean formular replacing the blackbox
-         * @return the given expression with all substitutions of the blackbox applied to it
+         * @return the given expression with all substitutions of the blackbox
+         * applied to it
          */
         public BooleanFormula fill(BooleanFormula expression) {
             BooleanFormula substituted = expression;
@@ -296,6 +315,11 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
             return null;
         }
 
+        @Override
+        public BooleanFormula fillBlackBox(BlackBox blackBox, BooleanFormula substitution) {
+            return name.equals(blackBox.name) ? fill(substitution) : this;
+        }
+
         /*
          * An instance of this class remembers the data of an substitution. This
          * is merely a data class.
@@ -316,7 +340,7 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
             }
 
             private String toString(boolean latex) {
-                return "[" + variable.toString(latex) + '/' + expression.toString(latex) + ']';
+                return "[" + expression.toString(latex) + '/' + variable.toString(latex) + ']';
             }
 
             @Override
@@ -347,9 +371,9 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
         }
 
     }
-    
+
     /**
-     * A quantifier represents either an "for all" or an "exits" expression. 
+     * A quantifier represents either an "for all" or an "exits" expression.
      */
     public static class Quantifier implements BooleanFormula {
 
@@ -360,7 +384,7 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
 
         /**
          * Create a new quantified expression.
-         * 
+         *
          * @param forAll true is all quantified, false if existence expression
          * @param variable quantified variable
          * @param argument quantified expression
@@ -373,11 +397,12 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
 
         /**
          * Usually a quantified expression cannot simply be evaluated. If the
-         * quantified variable does not appear in the quantified expression, then
-         * this method evaluates that expression. Otherwise it returns null.
-         * 
+         * quantified variable does not appear in the quantified expression,
+         * then this method evaluates that expression. Otherwise it returns
+         * null.
+         *
          * @param state a state
-         * @return the value of the quantified expression in the given state if 
+         * @return the value of the quantified expression in the given state if
          * it does not contain the quantified varialbe and null otherwise
          */
         @Override
@@ -470,6 +495,11 @@ public interface BooleanFormula extends Expression, HoareOrBoolean {
             }
             Expression sub = argument.trySubtitute(expression, subExpression);
             return sub == null ? null : new Quantifier(forAll, variable, sub);
+        }
+
+        @Override
+        public BooleanFormula fillBlackBox(BlackBox blackBox, BooleanFormula substitution) {
+            return new Quantifier(forAll, variable, argument.fillBlackBox(blackBox, substitution));
         }
 
     }

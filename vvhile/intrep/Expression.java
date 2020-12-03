@@ -109,6 +109,16 @@ public interface Expression extends ASTElement {
     public String toString(boolean latex);
 
     /**
+     * Replaces every occurrence of the given blackbox by the given boolean formular.
+     * 
+     * @param blackBox a blackbox
+     * @param substitution a boolean formular
+     * @return the expression after every occurrence of the blackbox is replaced
+     * by the boolean formular.
+     */
+    public Expression fillBlackBox(BooleanFormula.BlackBox blackBox, BooleanFormula substitution);
+
+    /**
      * A constant is an expression that evaluates to the same value in any
      * state.
      */
@@ -202,6 +212,11 @@ public interface Expression extends ASTElement {
         @Override
         public Expression trySubtitute(Expression expression, Expression subExpression) {
             return null;
+        }
+
+        @Override
+        public Expression fillBlackBox(BooleanFormula.BlackBox blackBox, BooleanFormula substitution) {
+            return this;
         }
 
     }
@@ -346,6 +361,11 @@ public interface Expression extends ASTElement {
          */
         public Variable dropIndex() {
             return new Variable(sort, name);
+        }
+
+        @Override
+        public Expression fillBlackBox(BooleanFormula.BlackBox blackBox, BooleanFormula substitution) {
+            return this;
         }
 
     }
@@ -569,6 +589,21 @@ public interface Expression extends ASTElement {
                 } else {
                     return null;
                 }
+            }
+        }
+
+        @Override
+        public Expression fillBlackBox(BooleanFormula.BlackBox blackBox, BooleanFormula substitution) {
+            Expression[] newArgs = new Expression[args.length];
+            // the substitution has to be done for every argument
+            for (int i = 0; i < args.length; i++) {
+                newArgs[i] = args[i].fillBlackBox(blackBox, substitution);
+            }
+            // If this is a boolean formular the result should again be a boolean formular.
+            if (Expression.SORT_BOOLEAN.equals(sort)) {
+                return new BooleanFormula.BooleanFunction(argSorts, newArgs, interpretation, infix, parentheses);
+            } else {
+                return new Function(argSorts, sort, newArgs, interpretation, infix, parentheses);
             }
         }
     }

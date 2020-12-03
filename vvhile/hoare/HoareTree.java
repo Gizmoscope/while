@@ -4,8 +4,14 @@ import java.util.LinkedList;
 import java.util.List;
 import vvhile.intrep.Statement;
 import vvhile.hoare.BooleanFormula.BooleanFunction;
+import vvhile.util.Experimental;
 
 /**
+ * A hoare tree is build from axioms, the leaves, and from rules, the inner
+ * nodes. The axioms and rules are recursively applied to a Hoare triple. The
+ * resulting tree yields a proof of the partial correctness of the Hoare triple.
+ * A leaf can also be given by a boolean formular. A Hoare triple is partially
+ * correct if all those boolean formulars, called obligations, are valid.
  *
  * @author markus
  */
@@ -15,29 +21,78 @@ public class HoareTree {
     private final HoareTree[] children;
     private final String rule;
 
+    /**
+     * Creates a new Hoare tree with the given node as its root.
+     *
+     * @param node a Hoare triple or a boolean formular
+     */
     public HoareTree(HoareOrBoolean node) {
         this.node = node;
         this.children = new HoareTree[0];
         this.rule = "";
     }
 
+    /**
+     * Creates a new Hoare tree with the given node as its root an the list of
+     * children as branches.
+     *
+     * @param node a Hoare triple or a boolean formular
+     * @param children the branches of the root
+     */
     public HoareTree(HoareTriple node, HoareTree... children) {
         this.node = node;
         this.children = children;
         this.rule = "";
     }
 
+    /**
+     * Creates a new Hoare tree with the given node as its root an the list of
+     * children as branches.
+     *
+     * @param node a Hoare triple or a boolean formular
+     * @param rule name of the rule that was applied to create this tree
+     * @param children the branches of the root
+     */
     public HoareTree(HoareOrBoolean node, String rule, HoareTree... children) {
         this.node = node;
         this.children = children;
         this.rule = rule;
     }
 
+    /**
+     * @return the Hoare triple or a boolean formular at the root of this tree
+     */
+    public HoareOrBoolean getNode() {
+        return node;
+    }
+
+    /**
+     * @return the branches of the root
+     */
+    public HoareTree[] getChildren() {
+        return children;
+    }
+
+    /**
+     * @return name of the rule that was applied to create this tree
+     */
+    public String getRule() {
+        return rule;
+    }
+
+    /**
+     * Traverses the tree to list all boolean formulars, the obligations, that
+     * have to be valid in order for the Hoare triple to be valid.
+     *
+     * @return list of obligations
+     */
     public List<BooleanFormula> getObligations() {
         List<BooleanFormula> obligations = new LinkedList();
         if (node instanceof BooleanFormula) {
+            // This must be a leaf
             obligations.add((BooleanFormula) node);
         } else {
+            // Collect obligations of the branches
             for (HoareTree child : children) {
                 obligations.addAll(child.getObligations());
             }
@@ -45,6 +100,52 @@ public class HoareTree {
         return obligations;
     }
 
+    /**
+     * Replaces every occurance the given blackbox by the give boolean formular.
+     *
+     * @param blackbox a blackbox
+     * @param substitution a boolean formular
+     * @return the Hoare tree where every occurance of the blackbox is replaced
+     * by the boolean formular
+     */
+    public HoareTree fillBlackBox(BooleanFormula.BlackBox blackbox, BooleanFormula substitution) {
+        // substitute within the node
+        HoareOrBoolean newNode;
+        if (node instanceof BooleanFormula) {
+            // For a boolean formular this is straight forward
+            newNode = ((BooleanFormula) node).fillBlackBox(blackbox, substitution);
+        } else if (node instanceof HoareTriple) {
+            // For a Hoare triple do the substitution within the pre- and post-condition
+            HoareTriple triple = (HoareTriple) node;
+            newNode = new HoareTriple(
+                    triple.getPreCondition().fillBlackBox(blackbox, substitution),
+                    triple.getProgram(),
+                    triple.getPostCondition().fillBlackBox(blackbox, substitution)
+            );
+        } else if (node == null) {
+            throw new NullPointerException("A node of the Hoare tree was null");
+        } else {
+            throw new UnsupportedOperationException(
+                    "Dont know what to do with instance of " + node.getClass());
+        }
+        // Apply the substitution within all the branches
+        HoareTree[] newChildren = new HoareTree[children.length];
+        for (int i = 0; i < children.length; i++) {
+            newChildren[i] = children[i].fillBlackBox(blackbox, substitution);
+        }
+        // Assemble all substituted components to a new Hoare tree
+        return new HoareTree(newNode, rule, newChildren);
+    }
+
+    /**
+     * A proof outline is a linearized version of a Hoare tree. A proof outline
+     * consists of annotated statements that replace the usual statements. Each
+     * statement is annotated with a pre- and a post-condition just as in the
+     * Hoare tree.
+     *
+     * @return linearized version of the Hoare tree
+     */
+    @Experimental
     public AnnotatedStatement toProofOutline() {
         AnnotatedStatement[] subOutlines = new AnnotatedStatement[children.length];
         for (int i = 0; i < children.length; i++) {
@@ -114,6 +215,9 @@ public class HoareTree {
                     "Dont know what to do with instance of " + node.getClass());
         }
     }
+    
+    // --- The following is used to create a string representation of a Hoare tree --- 
+    // TODO: Add more explanations
 
     private int stringWidth() {
         if (node instanceof BooleanFormula) {
